@@ -3,7 +3,13 @@
 <head> 
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" /> 
   <title> Eagle View</title> 
-  <script async src="https://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+  <script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
+  <!-- <script -->
+      <!-- src="https://maps.googleapis.com/maps/api/js?callback=initMap" -->
+      <!-- defer -->
+    <!-- ></script> -->
+	
   
     <!-- END fh5co-wrapper -->
 	<!-- The core Firebase JS SDK is always required and must be listed first -->
@@ -15,12 +21,67 @@
 <script src="https://www.gstatic.com/firebasejs/8.2.4/firebase-database.js"></script>
 </head> 
 <body>
-  <div id="map" style="width: 500px; height: 400px;"></div>
+  <div id="map" style="width: 100%; height: 400px;"></div>
 
   <script type="text/javascript">
 	setTimeout(function(){
-		document.getElementById("map").setAttribute("style","width: 100%; height:"+window.innerHeight-100+'px');
+		document.getElementById("map").style.height = window.innerHeight-30+'px';
 	},100)
+	
+	
+	let map;
+
+
+	function initMap() {
+		 map = new google.maps.Map(document.getElementById('map'), {
+		  zoom: 10,
+		  center: new google.maps.LatLng(22.23930763101178, 78.21214196371729),
+		  mapTypeId: google.maps.MapTypeId.ROADMAP
+		});
+		var bounds = new google.maps.LatLngBounds();
+		
+		
+	  // Initialize Firebase
+	  firebase.initializeApp(firebaseConfig);
+	  // firebase.analytics();
+	  var databaseLogRef = firebase.database().ref('Log/');
+	 databaseLogRef.on("value", function(snapshot) {
+		var data = snapshot.val();
+		var list = [];
+		for(key in data){
+			list.push({
+				lat:  data[key]['latitude'], 
+				lng:  data[key]['longitude'],
+				i : key
+			})
+			
+			
+			bounds.extend({
+				lat:  data[key]['latitude'], 
+				lng:  data[key]['longitude']
+			});
+		}
+		 const markers = list.map((location, i) => {
+			return new google.maps.Marker({
+			  position: location,
+			  <!-- label: key, -->
+			});
+		  });
+		  
+		  new MarkerClusterer(map, markers, {
+			imagePath:
+			  "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
+		  });
+				  
+		  
+		map.fitBounds(bounds);
+	   
+	   }, function (error) {
+	   console.log("Error: " + error.code);
+	});
+	}
+
+	
 	
 	var firebaseConfig = {
 		apiKey: "AIzaSyBLDsNSis8CH3OEc5wmdcOAcsv8ZxMM2xQ",
@@ -32,33 +93,10 @@
 		appId: "1:67606460371:web:ca32671dfe08953cad6126",
 		measurementId: "G-GPRZHGRFG9"
 	  };
-	  // Initialize Firebase
-	  firebase.initializeApp(firebaseConfig);
-	  // firebase.analytics();
-	  var databaseLogRef = firebase.database().ref('Log/');
-	 databaseLogRef.on("value", function(snapshot) {
-		var data = snapshot.val();
-		for(key in data){
-			marker = new google.maps.Marker({
-				position: new google.maps.LatLng(data[key]['latitude'], data[key]['longitude']),
-				map: map
-			}); 
-			bounds.extend(marker.position);
-		}
-		map.fitBounds(bounds);
-	   
-	   }, function (error) {
-	   console.log("Error: " + error.code);
-	});
 
-
-    var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 10,
-      center: new google.maps.LatLng(22.23930763101178, 78.21214196371729),
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    });
-	var bounds = new google.maps.LatLngBounds();
 
   </script>
 </body>
+<script async src="http://maps.google.com/maps/api/js?key=AIzaSyBIwzALxUPNbatRBj3Xi1Uhp0fFzwWNBkE&callback=initMap" type="text/javascript"></script>
+  
 </html>
